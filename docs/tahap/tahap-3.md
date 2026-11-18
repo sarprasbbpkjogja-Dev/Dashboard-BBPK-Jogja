@@ -38,6 +38,21 @@ File JSON kunci **tidak diunggah ke mana pun**. Buka di komputer (Notepad), sali
 
 `SUPER_ADMIN_EMAILS` hanya berlaku untuk akun **tanpa role**. Akun yang sudah punya role lain tidak berubah. Setelah super admin pertama jadi, variabel ini boleh dikosongkan.
 
+## Impor & ekspor Excel (cara utama, tanpa terminal)
+
+Di halaman **Data master**, **Kategori pengaduan**, atau **Tarif PNBP**, buka kotak *Impor & ekspor Excel*:
+
+1. **Unduh** salah satu:
+   - *Data saat ini (.xlsx)*: isi dashboard sekarang (`GET /api/admin/master/ekspor`);
+   - *Template data awal*: `public/template-data-master.xlsx`, berisi daftar fasilitas dari denah (sama dengan isi `data/master/*.csv`).
+2. **Edit di Excel.** Satu lembar per jenis data (Wisma, Kamar, Ruangan, Kendaraan, Titik denah, Kategori pengaduan, Tarif PNBP) plus lembar *Petunjuk*. Kolom pilihan punya dropdown; kolom Wisma di lembar Kamar memilih dari kode di lembar Wisma; kolom bertanda `*` wajib.
+3. **Unggah**, pilih *Lewati* (hanya menambah) atau *Perbarui dengan isi Excel*, tekan **Periksa file**. Server membaca dan memvalidasi semua baris tanpa menyimpan apa pun, lalu menampilkan jumlah baru/diperbarui/dilewati dan daftar masalah per baris.
+4. Bila tidak ada masalah, tekan **Impor**. Bila ada satu masalah saja, tidak ada yang disimpan.
+
+Aturan: wisma dan kendaraan dikenali dari kode, kamar dari nomor, lainnya dari nama. Menghapus baris di Excel tidak menghapus data di dashboard. Excel boleh memakai label ("Ruang rapat", "PNBP umum") maupun nilai teknis ("rapat", "umum"); angka boleh ditulis `150000`, `150.000`, atau `Rp 150000`. Setiap impor dicatat di log aktivitas.
+
+File Excel dibuat dan dibaca tanpa pustaka tambahan (`lib/master/xlsx.ts`, hanya `node:zlib`); pemetaan kolom ada di `lib/master/excel.ts`, berdasarkan `lib/master/definisi.ts`, jadi kolom baru otomatis ikut muncul di Excel.
+
 ## Data awal (CSV)
 
 Isi `data/master/` disusun dari denah dan rancangan UI. **Perlu dicek oleh Subbag Sarpras sebelum dipakai:**
@@ -52,9 +67,9 @@ Isi `data/master/` disusun dari denah dan rancangan UI. **Perlu dicek oleh Subba
 | `kategori_pengaduan.csv` | 10 kategori, unit tujuan, batas hari | Batas hari penyelesaian |
 | `tarif.csv` | 6 layanan, **nilai 0 = belum diisi** | Isi tarif dan dasar hukum dari PP/PMK tarif PNBP yang berlaku |
 
-Format: baris pertama nama kolom; daftar (fasilitas, pertanyaan tambahan) dipisah `|`; ya/tidak ditulis `ya` atau `tidak`; posisi denah di kolom `posisiX` dan `posisiY` (persen dari kiri dan atas gambar denah). File bisa dibuka dan disimpan dari Excel sebagai *CSV UTF-8*.
+Data yang sama tersedia sebagai template Excel (lihat bagian di atas). Format CSV: baris pertama nama kolom; daftar (fasilitas, pertanyaan tambahan) dipisah `|`; ya/tidak ditulis `ya` atau `tidak`; posisi denah di kolom `posisiX` dan `posisiY` (persen dari kiri dan atas gambar denah). File bisa dibuka dan disimpan dari Excel sebagai *CSV UTF-8*.
 
-Mengimpor (di komputer Anda, `.env.local` berisi kredensial Admin SDK):
+Cara lain untuk developer, lewat terminal (`.env.local` berisi kredensial Admin SDK):
 
 ```bash
 npm install
@@ -81,6 +96,10 @@ ID dokumen dibuat dari kode atau nama (`MP 104` → `mp-104`), sama dengan saat 
 | Ubah role petugas lain | Tersimpan; petugas itu keluar dan perlu login ulang |
 | Baris akun sendiri | Role dan tombol nonaktif terkunci |
 | Login sebagai role lain, buka `/admin/tarif` | Dikembalikan ke `/admin` |
+| Impor & ekspor Excel → Unduh template → unggah → Periksa | Ringkasan per lembar, tanpa masalah; tombol "Impor N data" muncul |
+| Impor | Tabel terisi; log mencatat "Impor Excel Wisma: … baru" |
+| Ubah satu status jadi "Rusak" di Excel, unggah, Periksa | Masalah "Status: "Rusak" tidak ada di pilihan…" dengan nomor barisnya; tidak ada yang disimpan |
+| Unduh data saat ini | File berisi data dashboard, siap diedit dan diunggah lagi dengan mode Perbarui |
 
 ## Keputusan
 
@@ -89,6 +108,7 @@ ID dokumen dibuat dari kode atau nama (`MP 104` → `mp-104`), sama dengan saat 
 - **Hapus = hapus permanen**, dengan konfirmasi. Untuk fasilitas yang sementara tidak dipakai, gunakan isian *Aktif / Bisa dipinjam*. Wisma yang masih punya kamar tidak bisa dihapus.
 - **Status kamar dan kendaraan** bisa diatur super admin di sini sebagai data awal; perubahan harian dikerjakan admin modul di Tahap 6 dan 8.
 - **Foto fasilitas** belum ada di form; menyusul di Tahap 4 bersama katalog publik (unggah ke Cloudinary).
+- **Excel sebagai jalur edit massal.** Dipilih karena Sarpras terbiasa dengan Excel. Impor bersifat semua-atau-tidak-sama-sekali agar data tidak setengah masuk.
 - **Kategori dan tarif** punya menu sendiri (sesuai menu super admin di spesifikasi); wisma, kamar, ruangan, kendaraan, dan titik denah digabung di halaman Data master dengan tab.
 
 ## Hasil pengecekan
@@ -97,6 +117,8 @@ ID dokumen dibuat dari kode atau nama (`MP 104` → `mp-104`), sama dengan saat 
 | --- | --- |
 | Sintaks TypeScript semua file | Lolos (pemeriksaan lokal) |
 | Skrip CSV dijalankan pada `data/master/` | 28 wisma, 156 kamar, 7 ruangan, 7 kendaraan, 12 titik, 10 kategori, 6 tarif; semua ID unik |
+| Template Excel dibuka openpyxl dan LibreOffice | 8 lembar, header beku, dropdown terbaca |
+| Template disimpan ulang oleh LibreOffice (format Excel standar: sharedStrings + kompresi) lalu dibaca kembali | 226 baris, 0 perbedaan dengan data CSV |
 | Build Vercel (lint + type check) | Berhasil (commit `bed9c2b`; build pertama gagal karena satu galat tipe di `lib/master/server.ts`, sudah diperbaiki) |
 | `npm run test`, `npm run test:rules` | Belum dijalankan (lingkungan pengembangan ini tidak punya akses npm). Jalankan di komputer Anda |
 
@@ -104,6 +126,6 @@ ID dokumen dibuat dari kode atau nama (`MP 104` → `mp-104`), sama dengan saat 
 
 - Isi `FIREBASE_ADMIN_CLIENT_EMAIL`, `FIREBASE_ADMIN_PRIVATE_KEY`, `SUPER_ADMIN_EMAILS` di Vercel, lalu login.
 - Pasang security rules: `npx firebase deploy --only firestore:rules`.
-- Verifikasi data CSV dengan Sarpras, lalu `npm run impor`.
+- Verifikasi data awal dengan Sarpras (edit template Excel), lalu impor dari dashboard.
 - Menu *Pengaturan layar* (`/admin/layar`) dibuat di Tahap 9.
 - Tahap 4: tampilan publik (katalog dengan foto, denah interaktif, jadwal).

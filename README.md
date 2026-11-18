@@ -50,7 +50,7 @@ Set `NEXT_PUBLIC_USE_FIREBASE_EMULATOR=true` di `.env.local` agar aplikasi memak
 | `npm run test` | Unit test |
 | `npm run test:rules` | Tes security rules di emulator (butuh Java 11+) |
 | `npm run set-role -- <email> <role>` | Menetapkan role akun (butuh kredensial Admin SDK di `.env.local`) |
-| `npm run impor` | Impor data master dari `data/master/*.csv` ke Firestore (tambahkan `-- --timpa` untuk memperbarui) |
+| `npm run impor` | Impor data master dari `data/master/*.csv` ke Firestore (tambahkan `-- --timpa` untuk memperbarui). Tanpa terminal: Data master → Impor & ekspor Excel |
 | `npm run seed` | Impor data yang sama ke emulator |
 
 ## Deploy ke Vercel

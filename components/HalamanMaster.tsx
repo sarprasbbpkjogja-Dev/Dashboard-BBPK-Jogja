@@ -1,4 +1,5 @@
 // Bagian server untuk satu koleksi master: ambil data via Admin SDK, lalu serahkan ke TabelMaster.
+import { ImporExcel } from "@/components/ImporExcel";
 import { TabelMaster } from "@/components/TabelMaster";
 import { definisi, type KoleksiMaster } from "@/lib/master/definisi";
 import { ambilBaris, opsiRelasi } from "@/lib/master/server";
@@ -16,6 +17,7 @@ export async function HalamanMaster({ koleksi, tampilJudul = true }: { koleksi: 
       ) : (
         <p className="text-sm text-muted">{def.deskripsi}</p>
       )}
+      <ImporExcel />
       <TabelMaster koleksi={koleksi} baris={baris} opsiRelasi={opsi} />
     </section>
   );

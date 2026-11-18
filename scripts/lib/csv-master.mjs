@@ -57,6 +57,7 @@ export function ubahBaris(koleksi, mentah) {
     const v = mentah[nama] ?? "";
     if (j === "angka") hasil[nama] = v === "" ? 0 : Number(v);
     else if (j === "daftar") hasil[nama] = v ? v.split("|").map((s) => s.trim()).filter(Boolean) : [];
+    else if (j === "relasi") hasil[nama] = buatSlug(v);
     else if (j === "yaTidak") hasil[nama] = ["ya", "y", "true", "1", "aktif"].includes(v.toLowerCase());
     else hasil[nama] = v;
   }
