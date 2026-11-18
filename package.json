@@ -11,7 +11,9 @@
     "emulators": "firebase emulators:start --only auth,firestore",
     "test": "vitest run tests/unit",
     "test:rules": "firebase emulators:exec --only firestore --project demo-bbpka \"vitest run tests/rules --passWithNoTests\"",
-    "set-role": "node --env-file=.env.local scripts/set-role.mjs"
+    "set-role": "node --env-file=.env.local scripts/set-role.mjs",
+    "seed": "node scripts/impor-master.mjs --emulator",
+    "impor": "node --env-file=.env.local scripts/impor-master.mjs"
   },
   "dependencies": {
     "firebase": "^12.0.0",

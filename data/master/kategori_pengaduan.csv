@@ -1,0 +1,11 @@
+nama,kelompok,unitTujuan,batasHari,pertanyaanTambahan
+Asrama,fasilitas,admin_asrama,2,Nomor kamar
+Ruang rapat,fasilitas,admin_ruang_rapat,2,Nama ruangan
+Ruang kelas,fasilitas,admin_ruang_kelas,2,Nama ruang kelas
+Kendaraan dinas,fasilitas,admin_kendaraan,2,Kode atau nomor polisi kendaraan
+Internet / Wi-Fi,layanan umum,pranata_komputer,1,Nama jaringan (SSID)|Lokasi gedung
+Listrik,layanan umum,petugas_umum,1,
+Air & toilet,layanan umum,petugas_umum,2,
+Kebersihan,layanan umum,petugas_umum,1,
+Keamanan,layanan umum,petugas_keamanan,1,
+Lainnya,layanan umum,petugas_umum,3,

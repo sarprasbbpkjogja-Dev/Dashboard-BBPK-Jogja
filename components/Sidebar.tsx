@@ -22,7 +22,7 @@ export function Sidebar({ role, namaPetugas }: Props) {
       </span>
       <nav aria-label="Menu admin" className="flex flex-col gap-1">
         {items.map((item) => {
-          const active = pathname === item.href;
+          const active = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(`${item.href}/`));
           return (
             <Link
               key={item.label}

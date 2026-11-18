@@ -47,12 +47,15 @@ export function FormLogin() {
     try {
       const auth = firebaseAuth();
       const cred = await signInWithEmailAndPassword(auth, email.trim(), sandi);
-      const idToken = await cred.user.getIdToken();
-      const res = await fetch("/api/sesi", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
-      });
+      const kirim = async (paksaBaru: boolean) =>
+        fetch("/api/sesi", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken: await cred.user.getIdToken(paksaBaru) }),
+        });
+      let res = await kirim(false);
+      // 409 = role baru saja ditetapkan server (super admin pertama); ambil token baru sekali.
+      if (res.status === 409) res = await kirim(true);
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { pesan?: string };
         await signOut(auth);

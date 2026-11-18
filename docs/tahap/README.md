@@ -6,7 +6,7 @@ Setiap tahap pengembangan punya satu catatan: tujuan, apa yang dibuat, cara menc
 | --- | --- | --- | --- |
 | [Tahap 1](tahap-1.md) | Kerangka proyek | `tahap-1-kerangka` | Selesai, build Vercel berhasil |
 | [Tahap 2](tahap-2.md) | Login, role, security rules | `tahap-2-login` | Selesai, menunggu kredensial Admin SDK untuk dicoba |
-| Tahap 3 | Super admin & data master | — | Belum |
+| [Tahap 3](tahap-3.md) | Super admin & data master | `tahap-3-master` | Kode selesai, menunggu kredensial Admin SDK untuk dicoba |
 | Tahap 4 | Tampilan publik | — | Belum |
 | Tahap 5 | Pengaduan, ULA, pranata komputer | — | Belum |
 | Tahap 6 | Asrama & PNBP | — | Belum |
