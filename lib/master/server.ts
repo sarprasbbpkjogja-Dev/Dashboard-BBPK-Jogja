@@ -18,7 +18,7 @@ export function polos(nilai: unknown): unknown {
 export async function ambilBaris(koleksi: KoleksiMaster): Promise<Baris[]> {
   const urut = definisi(koleksi).urutkan;
   const snap = await adminDb().collection(koleksi).get();
-  const baris = snap.docs.map((d) => ({ id: d.id, ...(polos(d.data()) as Record<string, unknown>) }));
+  const baris: Baris[] = snap.docs.map((d) => ({ id: d.id, ...(polos(d.data()) as Record<string, unknown>) }));
   return baris.sort((a, b) =>
     String(a[urut] ?? "").localeCompare(String(b[urut] ?? ""), "id", { numeric: true }),
   );
