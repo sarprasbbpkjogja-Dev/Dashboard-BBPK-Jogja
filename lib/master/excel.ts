@@ -3,7 +3,7 @@
 // saat diimpor, label maupun nilai teknis ("rapat", "umum", true) sama-sama diterima.
 import { definisi, KOLEKSI_MASTER, type Field, type KoleksiMaster } from "@/lib/master/definisi";
 import { buatSlug } from "@/lib/master/id";
-import type { Lembar, NilaiSel } from "@/lib/master/xlsx";
+import type { Lembar, NilaiSel, Validasi } from "@/lib/master/xlsx";
 
 type Baris = { id: string } & Record<string, unknown>;
 
@@ -78,7 +78,7 @@ export function buatLembarMaster(data: Record<KoleksiMaster, Baris[]>): Lembar[]
         return keSel(k.field, v, kodeWisma);
       }),
     );
-    const validasi = kolom.flatMap((k, i) => {
+    const validasi = kolom.flatMap((k, i): Validasi[] => {
       const f = k.field;
       if (f.jenis === "pilihan") return [{ kolom: i, daftar: (f.pilihan ?? []).map((p) => p.label), pesan: `Pilih dari daftar ${f.label}.` }];
       if (f.jenis === "yaTidak") return [{ kolom: i, daftar: ["ya", "tidak"], pesan: "Isi ya atau tidak." }];
