@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Logo } from "@/components/Logo";
+import { TombolKeluar } from "@/components/TombolKeluar";
 import { MENU, ROLE_LABEL, type Role } from "@/lib/roles";
 
 type Props = { role: Role; namaPetugas: string };
@@ -45,9 +46,7 @@ export function Sidebar({ role, namaPetugas }: Props) {
         </span>
         <span className="flex flex-col">
           <span className="text-sm font-semibold text-surface">{namaPetugas}</span>
-          <Link href="/login" className="text-xs text-sidebar-quiet hover:text-surface">
-            Keluar
-          </Link>
+          <TombolKeluar />
         </span>
       </div>
     </aside>

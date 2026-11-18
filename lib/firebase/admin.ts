@@ -1,11 +1,12 @@
-// Firebase Admin SDK. Hanya boleh diimpor dari kode server (route handler, server action).
+// Firebase Admin SDK. Hanya boleh diimpor dari kode server (route handler, server component).
 // Import "server-only" membuat build gagal bila file ini terbawa ke bundle browser.
+// Inisialisasi dibuat malas agar build tidak gagal saat kredensial belum diisi.
 import "server-only";
 import { cert, getApp, getApps, initializeApp, type App } from "firebase-admin/app";
-import { getAuth } from "firebase-admin/auth";
-import { getFirestore } from "firebase-admin/firestore";
+import { getAuth, type Auth } from "firebase-admin/auth";
+import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
-function buatApp(): App {
+function adminApp(): App {
   if (getApps().length) return getApp();
 
   // Saat emulator berjalan, Admin SDK otomatis memakai FIRESTORE_EMULATOR_HOST dan
@@ -28,6 +29,10 @@ function buatApp(): App {
   return initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
 }
 
-export const adminApp = buatApp();
-export const adminAuth = getAuth(adminApp);
-export const adminDb = getFirestore(adminApp);
+export function adminAuth(): Auth {
+  return getAuth(adminApp());
+}
+
+export function adminDb(): Firestore {
+  return getFirestore(adminApp());
+}

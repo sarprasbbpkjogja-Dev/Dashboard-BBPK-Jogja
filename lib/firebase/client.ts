@@ -1,7 +1,9 @@
-// Inisialisasi Firebase untuk browser. Admin SDK ada di lib/firebase/admin.ts (server only).
-import { getApp, getApps, initializeApp, type FirebaseOptions } from "firebase/app";
-import { connectAuthEmulator, getAuth } from "firebase/auth";
-import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
+// Firebase untuk browser. Admin SDK ada di lib/firebase/admin.ts (server only).
+// Inisialisasi dibuat malas (lazy): baru berjalan saat fungsi dipanggil, sehingga build
+// tidak gagal bila environment variable belum diisi.
+import { getApp, getApps, initializeApp, type FirebaseApp, type FirebaseOptions } from "firebase/app";
+import { connectAuthEmulator, getAuth, type Auth } from "firebase/auth";
+import { connectFirestoreEmulator, getFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -12,15 +14,30 @@ const firebaseConfig: FirebaseOptions = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Hindari inisialisasi ganda saat hot reload Next.js
-export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+const pakaiEmulator = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true";
 
-const useEmulator = process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === "true";
-const g = globalThis as { __bbpkaEmulator?: boolean };
-if (useEmulator && typeof window !== "undefined" && !g.__bbpkaEmulator) {
-  connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
-  connectFirestoreEmulator(db, "127.0.0.1", 8080);
-  g.__bbpkaEmulator = true;
+let auth: Auth | undefined;
+let db: Firestore | undefined;
+
+export function firebaseApp(): FirebaseApp {
+  if (!firebaseConfig.apiKey) {
+    throw new Error("Konfigurasi Firebase belum diisi (NEXT_PUBLIC_FIREBASE_*).");
+  }
+  return getApps().length ? getApp() : initializeApp(firebaseConfig);
+}
+
+export function firebaseAuth(): Auth {
+  if (!auth) {
+    auth = getAuth(firebaseApp());
+    if (pakaiEmulator) connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+  }
+  return auth;
+}
+
+export function firestoreDb(): Firestore {
+  if (!db) {
+    db = getFirestore(firebaseApp());
+    if (pakaiEmulator) connectFirestoreEmulator(db, "127.0.0.1", 8080);
+  }
+  return db;
 }

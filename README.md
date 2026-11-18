@@ -3,7 +3,7 @@
 Monitoring dan pengelolaan fasilitas balai: asrama, ruang rapat & aula, ruang kelas, kendaraan dinas, dan pengaduan.
 Spesifikasi lengkap ada di [`docs/spesifikasi.md`](docs/spesifikasi.md); aturan kerja untuk Claude Code ada di [`CLAUDE.md`](CLAUDE.md).
 
-Status: **Tahap 1 — kerangka proyek.** Belum ada fitur bisnis; login dan security rules per role dikerjakan di Tahap 2.
+Status: **Tahap 2 — login, role, dan security rules.** Catatan setiap tahap ada di [`docs/tahap/`](docs/tahap/README.md).
 
 ## Menjalankan di komputer sendiri
 
@@ -15,7 +15,9 @@ cp .env.example .env.local   # lalu isi nilainya (lihat di bawah)
 npm run dev                  # buka http://localhost:3000
 ```
 
-Halaman yang sudah ada: `/` (beranda), `/login` (tampilan saja), `/admin` (layout sidebar dengan role pratinjau).
+Halaman yang sudah ada: `/` (beranda), `/login`, `/admin` (perlu login; menu sesuai role).
+
+Super admin pertama dibuat dengan `npm run set-role -- <email> super_admin` setelah akunnya ditambahkan di Firebase Console → Authentication. Langkah lengkap: [`docs/tahap/tahap-2.md`](docs/tahap/tahap-2.md).
 
 ### Environment variables
 
@@ -45,7 +47,8 @@ Set `NEXT_PUBLIC_USE_FIREBASE_EMULATOR=true` di `.env.local` agar aplikasi memak
 | `npm run lint` | ESLint |
 | `npm run typecheck` | Pemeriksaan TypeScript |
 | `npm run test` | Unit test |
-| `npm run test:rules` | Tes security rules di emulator (tesnya ditulis mulai Tahap 2) |
+| `npm run test:rules` | Tes security rules di emulator (butuh Java 11+) |
+| `npm run set-role -- <email> <role>` | Menetapkan role akun (butuh kredensial Admin SDK di `.env.local`) |
 
 ## Deploy ke Vercel
 

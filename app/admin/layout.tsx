@@ -1,17 +1,20 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/Sidebar";
-import type { Role } from "@/lib/roles";
+import { getSesi } from "@/lib/auth/sesi";
 
 export const metadata: Metadata = { title: "Dashboard", robots: { index: false, follow: false } };
+export const dynamic = "force-dynamic";
 
-// Tahap 1: role sementara untuk melihat tata letak. Tahap 2 menggantinya dengan custom claim
-// dari sesi login dan memasang proteksi di middleware, sehingga /admin tidak bisa dibuka tanpa login.
-const ROLE_PRATINJAU: Role = "super_admin";
+// Verifikasi penuh sesi: cookie sah, belum dicabut, akun aktif, dan punya role.
+// Menu sidebar dibangun dari role tersebut (lib/roles.ts).
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const sesi = await getSesi();
+  if (!sesi) redirect("/login");
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen">
-      <Sidebar role={ROLE_PRATINJAU} namaPetugas="Pratinjau" />
+      <Sidebar role={sesi.role} namaPetugas={sesi.nama} />
       <main className="flex min-w-0 flex-1 flex-col gap-6 px-6 py-7 lg:px-9">{children}</main>
     </div>
   );

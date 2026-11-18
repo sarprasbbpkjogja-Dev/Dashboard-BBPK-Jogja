@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Logo } from "@/components/Logo";
+import { getSesi } from "@/lib/auth/sesi";
+import { FormLogin } from "./FormLogin";
 
-export const metadata: Metadata = { title: "Masuk admin" };
+export const metadata: Metadata = { title: "Masuk admin", robots: { index: false, follow: false } };
+export const dynamic = "force-dynamic";
 
-// Tahap 1: tampilan saja. Login Firebase Auth dan pengalihan per role dibuat di Tahap 2.
-export default function LoginPage() {
+export default async function LoginPage() {
+  // Petugas yang sudah masuk langsung ke dashboard.
+  if (await getSesi()) redirect("/admin");
+
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <section className="hidden flex-col justify-between bg-sidebar p-16 text-surface lg:flex">
@@ -21,25 +27,12 @@ export default function LoginPage() {
         </Link>
       </section>
       <section className="flex flex-col justify-center gap-5 px-6 py-12 sm:px-20">
+        <div className="lg:hidden">
+          <Logo />
+        </div>
         <h2 className="text-2xl font-bold">Masuk</h2>
-        <form className="flex flex-col gap-5">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className="text-sm font-semibold">
-              Email
-            </label>
-            <input id="email" type="email" autoComplete="username" className="min-h-[48px] rounded-lg border border-line bg-surface px-3.5" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="sandi" className="text-sm font-semibold">
-              Kata sandi
-            </label>
-            <input id="sandi" type="password" autoComplete="current-password" className="min-h-[48px] rounded-lg border border-line bg-surface px-3.5" />
-          </div>
-          <button type="submit" className="btn-primary" disabled>
-            Masuk
-          </button>
-          <p className="text-sm text-muted">Login diaktifkan pada Tahap 2.</p>
-        </form>
+        <FormLogin />
+        <p className="text-sm text-muted">Akun dibuat oleh super admin. Belum punya akun? Hubungi pengelola sistem balai.</p>
       </section>
     </div>
   );
