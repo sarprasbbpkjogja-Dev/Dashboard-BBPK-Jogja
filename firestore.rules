@@ -1,0 +1,186 @@
+rules_version = '2';
+
+// Security rules sesuai bagian "Security rules" di docs/spesifikasi.md.
+// Prinsip: semua ditolak kecuali dibuka eksplisit. Role berasal dari custom claim `role`
+// yang hanya bisa diatur server (Admin SDK). Akun nonaktif diblokir lewat Firebase Auth
+// (disabled + token dicabut). Koleksi publik tidak memuat data pribadi.
+// Tesnya ada di tests/rules/firestore.rules.test.ts.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Fungsi bantu ----------
+    function masuk() { return request.auth != null; }
+    function peran() { return masuk() ? request.auth.token.get('role', '') : ''; }
+    function punya(daftar) { return peran() in daftar; }
+    function superAdmin() { return peran() == 'super_admin'; }
+    function kunciBerubah() { return request.resource.data.diff(resource.data).affectedKeys(); }
+    function hanyaMengubah(daftar) { return kunciBerubah().hasOnly(daftar); }
+    function teks(v, maks) { return v is string && v.size() > 0 && v.size() <= maks; }
+
+    function unitPenangan() {
+      return punya(['admin_asrama', 'admin_ruang_rapat', 'admin_ruang_kelas', 'admin_kendaraan',
+                    'pranata_komputer', 'petugas_umum', 'petugas_keamanan']);
+    }
+    function daftarUnit() {
+      return ['admin_asrama', 'admin_ruang_rapat', 'admin_ruang_kelas', 'admin_kendaraan',
+              'pranata_komputer', 'petugas_umum', 'petugas_keamanan'];
+    }
+
+    // ---------- Koleksi publik (dibaca tanpa login) ----------
+    // Diisi server saat data sumber berubah; klien tidak boleh menulis.
+    match /jadwal_publik/{id} { allow read: if true; allow write: if false; }
+    match /ringkasan/{id} { allow read: if true; allow write: if false; }
+    // Status tiket untuk publik: hanya dibaca per kode tiket, tidak bisa didaftar semua.
+    match /pengaduan_publik/{kode} { allow get: if true; allow list, write: if false; }
+
+    match /status_jaringan/{id} {
+      allow read: if true;
+      allow write: if peran() == 'pranata_komputer';
+    }
+    match /pengumuman/{id} {
+      allow read: if true;
+      allow write: if punya(['super_admin', 'ula']);
+    }
+
+    // Data master yang tampil di katalog, denah, dan layar.
+    match /wisma/{id} { allow read: if true; allow write: if superAdmin(); }
+    match /lokasi_denah/{id} { allow read: if true; allow write: if superAdmin(); }
+    match /kategori_pengaduan/{id} { allow read: if true; allow write: if superAdmin(); }
+    match /tarif/{id} { allow read: if true; allow write: if superAdmin(); }
+    match /layar/{id} { allow read: if true; allow write: if superAdmin(); }
+
+    match /ruangan/{id} {
+      allow read: if true;
+      allow create, delete: if superAdmin();
+      // Admin ruang hanya mengubah status dan isi ruangan sesuai tipenya, bukan identitasnya.
+      allow update: if superAdmin()
+        || (peran() == 'admin_ruang_rapat' && resource.data.tipe in ['rapat', 'aula']
+            && hanyaMengubah(['aktif', 'foto', 'fasilitas', 'diubahPada', 'diubahOleh']))
+        || (peran() == 'admin_ruang_kelas' && resource.data.tipe == 'kelas'
+            && hanyaMengubah(['aktif', 'foto', 'fasilitas', 'diubahPada', 'diubahOleh']));
+    }
+
+    match /kendaraan/{id} {
+      allow read: if true;
+      allow create, delete: if superAdmin();
+      allow update: if punya(['super_admin', 'admin_kendaraan']);
+    }
+
+    // ---------- Asrama ----------
+    match /kamar/{id} {
+      allow read: if punya(['admin_asrama', 'bendahara', 'super_admin']);
+      allow create, delete: if superAdmin();
+      allow update: if punya(['admin_asrama', 'super_admin']);
+    }
+
+    match /reservasi_asrama/{id} {
+      allow read: if punya(['admin_asrama', 'bendahara', 'super_admin']);
+      // Admin asrama tidak boleh menandai lunas atau mengisi data verifikasi bendahara.
+      allow create: if peran() == 'admin_asrama'
+        && request.resource.data.get('bayar', '') != 'lunas'
+        && !request.resource.data.keys().hasAny(['diverifikasiOleh', 'diverifikasiPada']);
+      allow update: if
+        (peran() == 'admin_asrama'
+          && !kunciBerubah().hasAny(['diverifikasiOleh', 'diverifikasiPada'])
+          && (!kunciBerubah().hasAny(['bayar'])
+              || (resource.data.get('bayar', '') != 'lunas' && request.resource.data.bayar != 'lunas')))
+        || (peran() == 'bendahara'
+          && hanyaMengubah(['bayar', 'diverifikasiOleh', 'diverifikasiPada', 'diubahPada', 'diubahOleh'])
+          && request.resource.data.diverifikasiOleh == request.auth.uid);
+      allow delete: if false;
+    }
+
+    match /checkin/{id} {
+      allow read: if punya(['admin_asrama', 'super_admin']);
+      allow create, update: if peran() == 'admin_asrama';
+      allow delete: if false;
+    }
+
+    // ---------- Ruang rapat & kelas ----------
+    function tipeRuang(ruanganId) {
+      return get(/databases/$(database)/documents/ruangan/$(ruanganId)).data.tipe;
+    }
+    function adminRuangUntuk(ruanganId) {
+      return (peran() == 'admin_ruang_rapat' && tipeRuang(ruanganId) in ['rapat', 'aula'])
+        || (peran() == 'admin_ruang_kelas' && tipeRuang(ruanganId) == 'kelas');
+    }
+    match /peminjaman_ruang/{id} {
+      allow read: if punya(['admin_ruang_rapat', 'admin_ruang_kelas', 'super_admin']);
+      allow create: if adminRuangUntuk(request.resource.data.ruanganId);
+      allow update: if adminRuangUntuk(resource.data.ruanganId)
+        && request.resource.data.ruanganId == resource.data.ruanganId;
+      allow delete: if false;
+    }
+
+    // ---------- Kendaraan ----------
+    match /peminjaman_kendaraan/{id} {
+      allow read: if punya(['admin_kendaraan', 'super_admin']);
+      allow create, update: if peran() == 'admin_kendaraan';
+      allow delete: if false;
+    }
+    match /servis_kendaraan/{id} {
+      allow read: if punya(['admin_kendaraan', 'super_admin']);
+      allow create, update: if peran() == 'admin_kendaraan';
+      allow delete: if false;
+    }
+
+    // ---------- Pengaduan ----------
+    function pengaduanBaruValid(d) {
+      return d.keys().hasOnly(['kategori', 'judul', 'lokasi', 'uraian', 'foto', 'kontak', 'detail',
+                               'sumber', 'status', 'dibuatPada'])
+        && d.keys().hasAll(['kategori', 'judul', 'lokasi', 'sumber', 'status', 'dibuatPada'])
+        && teks(d.kategori, 60) && teks(d.judul, 120) && teks(d.lokasi, 120)
+        && (!('uraian' in d) || (d.uraian is string && d.uraian.size() <= 2000))
+        && (!('foto' in d) || (d.foto is list && d.foto.size() <= 3))
+        && (!('kontak' in d) || (d.kontak is string && d.kontak.size() <= 120))
+        && (!('detail' in d) || d.detail is map)
+        && d.status == 'baru'
+        && d.dibuatPada == request.time;
+    }
+
+    // ULA: verifikasi lalu teruskan ke unit, atau tolak. Tidak boleh menandai ditangani/selesai.
+    function ulaMengubah() {
+      let lama = resource.data.status;
+      let baru = request.resource.data.status;
+      return peran() == 'ula'
+        && hanyaMengubah(['status', 'unitTujuan', 'alasanTolak', 'riwayat', 'diubahPada', 'diubahOleh'])
+        && ((lama in ['baru', 'diproses'] && baru == 'diproses' && request.resource.data.unitTujuan in daftarUnit())
+            || (lama == 'baru' && baru == 'ditolak'));
+    }
+
+    // Unit penangan: hanya tiket miliknya; diproses → ditangani → selesai (wajib catatan).
+    function unitMengubah() {
+      let lama = resource.data.status;
+      let baru = request.resource.data.status;
+      return unitPenangan()
+        && resource.data.get('unitTujuan', '') == peran()
+        && hanyaMengubah(['status', 'catatanTeknis', 'riwayat', 'diubahPada', 'diubahOleh'])
+        && ((lama == 'diproses' && baru == 'ditangani')
+            || (lama == 'ditangani' && baru == 'selesai' && teks(request.resource.data.get('catatanTeknis', ''), 2000)));
+    }
+
+    match /pengaduan/{kode} {
+      allow read: if punya(['super_admin', 'ula'])
+        || (unitPenangan() && resource.data.get('unitTujuan', '') == peran());
+      // Publik membuat tiket lewat web; ULA mencatat pengaduan yang datang langsung, telepon, atau WhatsApp.
+      allow create: if kode.matches('^PGD-[A-HJ-NP-Z2-9]{6}$')
+        && pengaduanBaruValid(request.resource.data)
+        && (request.resource.data.sumber == 'web'
+            || (peran() == 'ula' && request.resource.data.sumber in ['datang langsung', 'telepon', 'whatsapp']));
+      allow update: if ulaMengubah() || unitMengubah();
+      allow delete: if false;
+    }
+
+    // ---------- Akun & log ----------
+    // Ditulis hanya oleh server (API super admin / skrip), tidak dari browser.
+    match /users/{uid} {
+      allow get: if masuk() && (request.auth.uid == uid || superAdmin());
+      allow list: if superAdmin();
+      allow write: if false;
+    }
+    match /audit_log/{id} {
+      allow read: if superAdmin();
+      allow write: if false;
+    }
+  }
+}
