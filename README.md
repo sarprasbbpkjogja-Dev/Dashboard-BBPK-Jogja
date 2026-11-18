@@ -1,67 +1,58 @@
 # Dashboard Fasilitas BBPKA PDN III
 
-Website monitoring dan pengelolaan fasilitas balai: asrama (dengan pembayaran PNBP), ruang rapat & aula, ruang kelas, kendaraan dinas, dan pengaduan. Ada tampilan publik, layar TV/iPad, dan dashboard admin per role.
+Monitoring dan pengelolaan fasilitas balai: asrama, ruang rapat & aula, ruang kelas, kendaraan dinas, dan pengaduan.
+Spesifikasi lengkap ada di [`docs/spesifikasi.md`](docs/spesifikasi.md); aturan kerja untuk Claude Code ada di [`CLAUDE.md`](CLAUDE.md).
 
-**Sumber kebenaran:** `docs/spesifikasi.md`. Baca dulu bagian yang relevan sebelum menulis kode. Jika permintaan bertentangan dengan spesifikasi, tanyakan dulu; jangan menebak. Setelah mengubah perilaku, perbarui bagian spesifikasi yang terkait.
+Status: **Tahap 2 — login, role, dan security rules.** Catatan setiap tahap ada di [`docs/tahap/`](docs/tahap/README.md).
 
-## Stack
+## Menjalankan di komputer sendiri
 
-- Next.js (App Router) + TypeScript (strict) + Tailwind CSS
-- Firebase Authentication (email/password, custom claim `role`)
-- Cloud Firestore, region `asia-southeast2`
-- Firebase Admin SDK hanya di server (route handler / server action), tidak pernah di client
-- Foto: Cloudinary (signed upload lewat API route). Video: embed YouTube
-- Hosting: Vercel (preview per branch, produksi dari `main`)
+Kebutuhan: Node.js 22, dan Java 11+ untuk Firebase Emulator.
 
-## Struktur folder
-
-```
-app/
-  (publik)/            beranda, katalog, denah, pengaduan, lacak/[kode]
-  layar/[perangkat]/   tampilan TV/iPad, tanpa login, real-time
-  login/
-  admin/               layout sidebar; submenu per modul
-  api/                 route handler server (Admin SDK)
-components/            komponen UI bersama (Sidebar, StatCard, StatusPill, Modal, Toast, ...)
-lib/
-  firebase/client.ts   inisialisasi SDK client
-  firebase/admin.ts    inisialisasi Admin SDK (server only)
-  roles.ts             daftar role + menu per role (satu-satunya sumber)
-  schema/              tipe TypeScript + validasi (zod) per koleksi
-firestore.rules
-tests/rules/           tes security rules (@firebase/rules-unit-testing)
-scripts/               impor data master, seed emulator
-docs/spesifikasi.md
+```bash
+npm install
+cp .env.example .env.local   # lalu isi nilainya (lihat di bawah)
+npm run dev                  # buka http://localhost:3000
 ```
 
-## Aturan kode
+Halaman yang sudah ada: `/` (beranda), `/login`, `/admin` (perlu login; menu sesuai role).
 
-- Nama koleksi, field, status, dan role persis seperti di `docs/spesifikasi.md` (bahasa Indonesia, camelCase untuk field).
-- Semua tulisan ke Firestore divalidasi dengan skema zod di `lib/schema/`.
-- Aksi sensitif berjalan di server: mengatur role, cek bentrok jadwal, memilih kamar otomatis, sinkronisasi koleksi publik (`jadwal_publik`, `ringkasan`, `pengaduan_publik`), dan menulis `audit_log`. Gunakan transaction untuk cek bentrok dan perubahan status kamar.
-- Data pribadi (nama pemohon, kontak pelapor, NTPN) tidak boleh masuk ke koleksi publik.
-- Setiap perubahan status tiket ditambahkan ke `riwayat` dan `audit_log`.
-- UI berbahasa Indonesia. Status selalu ditampilkan sebagai teks dalam pill, bukan warna saja. Target sentuh minimal 44 px, setiap input punya label.
-- Token warna dan font ada di `tailwind.config.ts` (lihat bagian "Aturan desain UI" di spesifikasi). Jangan memakai warna hex langsung di komponen.
-- Foto dikompres di browser sebelum diunggah (maks. 1600 px).
-- Jangan commit rahasia. Semua kunci lewat environment variables; perbarui `.env.example` bila menambah variabel.
+Super admin pertama dibuat dengan `npm run set-role -- <email> super_admin` setelah akunnya ditambahkan di Firebase Console → Authentication. Langkah lengkap: [`docs/tahap/tahap-2.md`](docs/tahap/tahap-2.md).
+
+### Environment variables
+
+| Variabel | Sumber | Catatan |
+| --- | --- | --- |
+| `NEXT_PUBLIC_FIREBASE_*` | Firebase Console → Project settings → Your apps | Boleh terlihat di browser |
+| `NEXT_PUBLIC_USE_FIREBASE_EMULATOR` | `true` saat memakai emulator lokal | |
+| `FIREBASE_ADMIN_PROJECT_ID`, `FIREBASE_ADMIN_CLIENT_EMAIL`, `FIREBASE_ADMIN_PRIVATE_KEY` | Project settings → Service accounts → Generate new private key | **Rahasia.** Jangan di-commit, jangan diberi awalan `NEXT_PUBLIC_` |
+| `CLOUDINARY_*` | Dashboard Cloudinary | Rahasia, dipakai mulai Tahap 5 |
+
+Di Vercel, isi variabel yang sama di Project → Settings → Environment Variables. Untuk `FIREBASE_ADMIN_PRIVATE_KEY`, tempel isi kunci apa adanya (baris baru boleh ditulis sebagai `\n`).
+
+### Emulator
+
+```bash
+npm run emulators            # Auth :9099, Firestore :8080, UI :4000
+```
+
+Set `NEXT_PUBLIC_USE_FIREBASE_EMULATOR=true` di `.env.local` agar aplikasi memakai emulator, bukan data asli.
 
 ## Perintah
 
-```
-npm run dev          # Next.js lokal
-npm run emulators    # Firebase Emulator (Auth + Firestore)
-npm run seed         # isi emulator dengan data contoh
-npm run test         # unit test
-npm run test:rules   # tes security rules di emulator
-npm run lint
-npm run build
-```
+| Perintah | Fungsi |
+| --- | --- |
+| `npm run dev` | Server pengembangan |
+| `npm run build` | Build produksi |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | Pemeriksaan TypeScript |
+| `npm run test` | Unit test |
+| `npm run test:rules` | Tes security rules di emulator (butuh Java 11+) |
+| `npm run set-role -- <email> <role>` | Menetapkan role akun (butuh kredensial Admin SDK di `.env.local`) |
 
-Sebelum menyatakan pekerjaan selesai: jalankan `lint`, `test`, `test:rules`, dan `build`, lalu laporkan hasilnya.
+## Deploy ke Vercel
 
-## Cara bekerja
-
-- Kerjakan satu tahap dari bagian "Urutan pengerjaan" di spesifikasi per sesi, di branch tersendiri.
-- Mulai dengan rencana singkat (file yang akan dibuat atau diubah), lalu kerjakan.
-- Jika menemukan keputusan yang belum ada di spesifikasi (lihat "Asumsi & keputusan yang masih terbuka"), berhenti dan tanyakan.
+1. Push repository ke GitHub.
+2. Di Vercel: Add New → Project → pilih repository. Framework terdeteksi otomatis sebagai Next.js.
+3. Isi environment variables, lalu Deploy. Setiap branch baru mendapat preview deployment.
+4. Tambahkan domain Vercel ke Firebase Console → Authentication → Settings → Authorized domains.
