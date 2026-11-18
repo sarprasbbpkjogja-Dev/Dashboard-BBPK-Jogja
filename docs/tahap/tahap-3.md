@@ -70,7 +70,7 @@ ID dokumen dibuat dari kode atau nama (`MP 104` → `mp-104`), sama dengan saat 
 
 | Langkah | Hasil yang diharapkan |
 | --- | --- |
-| Login pertama dengan email di `SUPER_ADMIN_EMAILS` | Langsung masuk sebagai super admin; `/admin/log` mencatat "Menetapkan super admin awal" |
+| Login pertama dengan email di `SUPER_ADMIN_EMAILS` | Langsung masuk sebagai super admin; `/admin/log` mencatat "Role super_admin ditetapkan otomatis …" |
 | Data master → Wisma → Tambah wisma | Baris baru muncul; log mencatat "Menambah wisma …" |
 | Tambah wisma dengan kode yang sudah ada | "Wisma dengan nama/kode itu sudah ada." |
 | Kosongkan nama lalu Simpan | Pesan galat di bawah isian Nama |
