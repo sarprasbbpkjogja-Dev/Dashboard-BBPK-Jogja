@@ -119,7 +119,7 @@ ID dokumen dibuat dari kode atau nama (`MP 104` → `mp-104`), sama dengan saat 
 | Skrip CSV dijalankan pada `data/master/` | 28 wisma, 156 kamar, 7 ruangan, 7 kendaraan, 12 titik, 10 kategori, 6 tarif; semua ID unik |
 | Template Excel dibuka openpyxl dan LibreOffice | 8 lembar, header beku, dropdown terbaca |
 | Template disimpan ulang oleh LibreOffice (format Excel standar: sharedStrings + kompresi) lalu dibaca kembali | 226 baris, 0 perbedaan dengan data CSV |
-| Build Vercel (lint + type check) | Berhasil (commit `bed9c2b`; build pertama gagal karena satu galat tipe di `lib/master/server.ts`, sudah diperbaiki) |
+| Build Vercel (lint + type check) | Berhasil (commit `05ac382`, termasuk fitur Excel; galat tipe dan lint di build sebelumnya sudah diperbaiki) |
 | `npm run test`, `npm run test:rules` | Belum dijalankan (lingkungan pengembangan ini tidak punya akses npm). Jalankan di komputer Anda |
 
 ## Belum selesai / tahap berikutnya
