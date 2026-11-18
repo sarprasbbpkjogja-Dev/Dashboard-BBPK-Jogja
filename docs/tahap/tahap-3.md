@@ -1,6 +1,6 @@
 # Tahap 3: Super admin & data master
 
-**Tanggal:** 18 November 2026 · **Branch:** `tahap-3-master` · **Status:** kode selesai dan build Vercel dicek; dicoba sungguhan setelah kredensial Admin SDK diisi di Vercel
+**Tanggal:** 18 November 2026 · **Branch:** `tahap-3-master` · **Status:** kode selesai, build Vercel berhasil; dicoba sungguhan setelah kredensial Admin SDK diisi di Vercel
 
 ## Tujuan
 
@@ -97,7 +97,7 @@ ID dokumen dibuat dari kode atau nama (`MP 104` → `mp-104`), sama dengan saat 
 | --- | --- |
 | Sintaks TypeScript semua file | Lolos (pemeriksaan lokal) |
 | Skrip CSV dijalankan pada `data/master/` | 28 wisma, 156 kamar, 7 ruangan, 7 kendaraan, 12 titik, 10 kategori, 6 tarif; semua ID unik |
-| Build Vercel (lint + type check) | Lihat bagian status di atas |
+| Build Vercel (lint + type check) | Berhasil (commit `bed9c2b`; build pertama gagal karena satu galat tipe di `lib/master/server.ts`, sudah diperbaiki) |
 | `npm run test`, `npm run test:rules` | Belum dijalankan (lingkungan pengembangan ini tidak punya akses npm). Jalankan di komputer Anda |
 
 ## Belum selesai / tahap berikutnya
