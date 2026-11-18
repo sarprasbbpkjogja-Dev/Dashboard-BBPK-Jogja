@@ -1,6 +1,6 @@
 # Tahap 2 — Login, role, dan security rules
 
-**Tanggal:** 18 November 2026 · **Branch:** `tahap-2-login` · **Status:** kode selesai; perlu kredensial Admin SDK di Vercel untuk dicoba
+**Tanggal:** 18 November 2026 · **Branch:** `tahap-2-login` · **Status:** build Vercel berhasil; login sungguhan menunggu kredensial Admin SDK di Vercel
 
 ## Tujuan
 
@@ -78,7 +78,9 @@ Dicatat juga di dokumen spesifikasi.
 
 - Sintaks semua file TypeScript diperiksa; skrip `set-role.mjs` lolos `node --check`; tanda kurung `firestore.rules` seimbang.
 - Tes `skrip-role` (daftar role di skrip = `lib/roles.ts`) lulus.
-- Build Vercel: lihat bagian bawah setelah deploy.
+- Build Vercel branch `tahap-2-login` berhasil (READY): kompilasi, lint, dan pengecekan tipe lolos.
+- Di preview: membuka `/admin` tanpa login diarahkan ke `/login`, dan halaman login tampil dengan form, tombol lupa kata sandi, dan tombol masuk.
+- Login sungguhan belum bisa dicoba sampai `FIREBASE_ADMIN_CLIENT_EMAIL` dan `FIREBASE_ADMIN_PRIVATE_KEY` diisi di Vercel.
 - **Belum dijalankan:** tes rules di emulator (butuh Java dan `npm install`, tidak tersedia di lingkungan pengembangan ini). Jalankan `npm run test:rules` di komputer Anda.
 
 ## Belum dikerjakan
