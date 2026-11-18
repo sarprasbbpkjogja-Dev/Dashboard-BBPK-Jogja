@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply bg-ground text-ink antialiased;
+  }
+  body {
+    @apply min-h-screen font-sans;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex min-h-tap items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-surface transition-colors hover:bg-primary-hover;
+  }
+  .btn-secondary {
+    @apply inline-flex min-h-tap items-center justify-center rounded-lg border border-line bg-surface px-5 text-sm font-semibold text-ink transition-colors hover:border-muted;
+  }
+  .card {
+    @apply rounded-xl border border-line bg-surface;
+  }
+}

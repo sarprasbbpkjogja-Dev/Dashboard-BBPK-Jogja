@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// Tahap 1: semua akses ditolak. Aturan per koleksi dan per role ditulis di Tahap 2
+// sesuai bagian "Security rules" di docs/spesifikasi.md, beserta tesnya di tests/rules/.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
