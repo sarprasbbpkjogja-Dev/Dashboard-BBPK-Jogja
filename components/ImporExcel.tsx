@@ -69,7 +69,9 @@ export function ImporExcel() {
         <div className="flex flex-col gap-2">
           <h3 className="text-sm font-semibold">1. Unduh file</h3>
           <div className="flex flex-wrap gap-3">
-            <a href="/api/admin/master/ekspor" className="btn-primary">Unduh data saat ini (.xlsx)</a>
+            {/* Unduhan file dari route handler, bukan navigasi halaman, jadi <a> biasa. */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a href="/api/admin/master/ekspor" download className="btn-primary">Unduh data saat ini (.xlsx)</a>
             <a href="/template-data-master.xlsx" download className="btn-secondary">Unduh template data awal</a>
           </div>
           <p className="text-xs text-muted">
