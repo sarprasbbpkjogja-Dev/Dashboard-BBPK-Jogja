@@ -7,7 +7,7 @@ Status: **Tahap 1 — kerangka proyek.** Belum ada fitur bisnis; login dan secur
 
 ## Menjalankan di komputer sendiri
 
-Kebutuhan: Node.js 20 atau lebih baru, dan Java 11+ untuk Firebase Emulator.
+Kebutuhan: Node.js 22, dan Java 11+ untuk Firebase Emulator.
 
 ```bash
 npm install
